@@ -14,3 +14,8 @@ The software system will be developed and tested using ROS 2 and Gazebo before d
 * ros2_control
 * Python / C++
 
+## Repository Structure
+
+- `mechanical/`: CAD models and mechanical designs.
+- `software/`: ROS 2 packages, control software, and simulation.
+- `electrical/`: Electronics, wiring, embedded systems, and firmware.

@@ -3,7 +3,7 @@
 <package format="3">
   <name>davinci_description</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>davinci description for the September one-arm control and simulation milestone.</description>
   <maintainer email="quanlenguyen3001@gmail.com">quanln</maintainer>
   <license>TODO: License declaration</license>
 
@@ -11,6 +11,8 @@
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+
+  <exec_depend>xacro</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

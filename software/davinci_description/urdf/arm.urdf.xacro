@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="davinci_arm">
+  <!-- Teaching geometry, not final CAD or measured motor/payload specifications. -->
+  <xacro:arg name="dof" default="3"/>
+  <xacro:arg name="backend" default="gazebo"/>
+  <xacro:arg name="controllers_file" default=""/>
+  <xacro:property name="four" value="${int('$(arg dof)') == 4}"/>
+  <xacro:property name="sim" value="${'$(arg backend)' == 'gazebo'}"/>
+  <xacro:property name="arm_pi" value="3.141592653589793"/>
+  <xacro:macro name="box_link" params="name x y z mass cx cy cz color">
+    <link name="${name}">
+      <inertial>
+        <origin xyz="${cx} ${cy} ${cz}"/>
+        <mass value="${mass}"/>
+        <inertia ixx="${mass*(y*y+z*z)/12}" iyy="${mass*(x*x+z*z)/12}"
+                 izz="${mass*(x*x+y*y)/12}" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+      <visual>
+        <origin xyz="${cx} ${cy} ${cz}"/>
+        <geometry><box size="${x} ${y} ${z}"/></geometry>
+        <material name="${name}_color"><color rgba="${color}"/></material>
+      </visual>
+      <collision>
+        <origin xyz="${cx} ${cy} ${cz}"/>
+        <geometry><box size="${x} ${y} ${z}"/></geometry>
+      </collision>
+    </link>
+  </xacro:macro>
+  <link name="world"/>
+  <xacro:box_link name="pedestal" x="0.09" y="0.09" z="0.10"
+    mass="1.0" cx="0" cy="0" cz="0.05" color="0.45 0.55 0.49 1"/>
+  <xacro:box_link name="yaw_link" x="0.04" y="0.04" z="0.02"
+    mass="0.08" cx="0" cy="0" cz="-0.01" color="0.3 0.4 0.33 1"/>
+  <xacro:box_link name="upper_arm" x="0.22" y="0.028" z="0.028"
+    mass="0.25" cx="0.11" cy="0" cz="0" color="0.1 0.45 0.32 1"/>
+  <xacro:box_link name="forearm" x="0.20" y="0.028" z="0.028"
+    mass="0.20" cx="0.10" cy="0" cz="0" color="0.1 0.45 0.32 1"/>
+  <xacro:box_link name="tool" x="0.06" y="0.018" z="0.018"
+    mass="0.05" cx="0.03" cy="0" cz="0" color="0.8 0.55 0.2 1"/>
+  <!-- This fixed tool establishes a target frame; gripper actuation comes later. -->
+  <link name="tool_tip"/>
+  <joint name="world_fixed" type="fixed">
+    <parent link="world"/><child link="pedestal"/><origin xyz="0 0 0"/>
+  </joint>
+  <joint name="base_yaw" type="revolute">
+    <parent link="pedestal"/><child link="yaw_link"/>
+    <origin xyz="0 0 0.12"/><axis xyz="0 0 1"/>
+    <limit lower="${-170*arm_pi/180}" upper="${170*arm_pi/180}" effort="10" velocity="1.4"/>
+    <dynamics damping="0.1" friction="0.02"/>
+  </joint>
+  <!-- Pitch axes use -Y so a positive angle raises a +X link. -->
+  <joint name="shoulder_pitch" type="revolute">
+    <parent link="yaw_link"/><child link="upper_arm"/>
+    <origin xyz="0 0 0"/><axis xyz="0 -1 0"/>
+    <limit lower="0" upper="${150*arm_pi/180}" effort="10" velocity="1.4"/>
+    <dynamics damping="0.1" friction="0.02"/>
+  </joint>
+  <joint name="elbow_pitch" type="revolute">
+    <parent link="upper_arm"/><child link="forearm"/>
+    <origin xyz="0.22 0 0"/><axis xyz="0 -1 0"/>
+    <limit lower="${-150*arm_pi/180}" upper="0" effort="10" velocity="1.4"/>
+    <dynamics damping="0.1" friction="0.02"/>
+  </joint>
+  <xacro:if value="${four}">
+    <joint name="wrist_pitch" type="revolute">
+      <parent link="forearm"/><child link="tool"/>
+      <origin xyz="0.20 0 0"/><axis xyz="0 -1 0"/>
+      <limit lower="${-150*arm_pi/180}" upper="${150*arm_pi/180}" effort="10" velocity="1.4"/>
+      <dynamics damping="0.1" friction="0.02"/>
+    </joint>
+  </xacro:if>
+  <xacro:unless value="${four}">
+    <joint name="wrist_fixed" type="fixed">
+      <parent link="forearm"/><child link="tool"/><origin xyz="0.20 0 0"/>
+    </joint>
+  </xacro:unless>
+  <joint name="tool_tip_fixed" type="fixed">
+    <parent link="tool"/><child link="tool_tip"/><origin xyz="0.06 0 0"/>
+  </joint>
+  <xacro:macro name="controlled_joint" params="name angle">
+    <joint name="${name}">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">${angle}</param></state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+  <ros2_control name="DaVinciSystem" type="system">
+    <hardware>
+      <xacro:if value="${sim}"><plugin>gz_ros2_control/GazeboSimSystem</plugin></xacro:if>
+      <xacro:unless value="${sim}"><plugin>mock_components/GenericSystem</plugin></xacro:unless>
+    </hardware>
+    <xacro:controlled_joint name="base_yaw" angle="0"/>
+    <xacro:controlled_joint name="shoulder_pitch" angle="${65*arm_pi/180}"/>
+    <xacro:controlled_joint name="elbow_pitch" angle="${-95*arm_pi/180}"/>
+    <xacro:if value="${four}">
+      <xacro:controlled_joint name="wrist_pitch" angle="${-60*arm_pi/180}"/>
+    </xacro:if>
+  </ros2_control>
+  <xacro:if value="${sim}">
+    <gazebo>
+      <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(arg controllers_file)</parameters>
+        <position_proportional_gain>0.1</position_proportional_gain>
+      </plugin>
+    </gazebo>
+  </xacro:if>
+</robot>

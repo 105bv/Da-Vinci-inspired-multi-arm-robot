@@ -3,7 +3,7 @@
 <package format="3">
   <name>davinci_control</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>davinci control for the September one-arm control and simulation milestone.</description>
   <maintainer email="quanlenguyen3001@gmail.com">quanln</maintainer>
   <license>TODO: License declaration</license>
 
@@ -15,6 +15,8 @@
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>joint_state_broadcaster</exec_depend>
   <exec_depend>joint_trajectory_controller</exec_depend>
+
+
 
   <export>
     <build_type>ament_cmake</build_type>

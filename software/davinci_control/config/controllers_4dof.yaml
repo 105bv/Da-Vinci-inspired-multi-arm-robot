@@ -1,0 +1,30 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+    use_sim_time: true
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+arm_controller:
+  ros__parameters:
+    joints: [base_yaw, shoulder_pitch, elbow_pitch, wrist_pitch]
+    command_interfaces: [position]
+    state_interfaces: [position, velocity]
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    constraints:
+      stopped_velocity_tolerance: 0.05
+      goal_time: 3.0
+      base_yaw:
+        trajectory: 0.2
+        goal: 0.02
+      shoulder_pitch:
+        trajectory: 0.2
+        goal: 0.02
+      elbow_pitch:
+        trajectory: 0.2
+        goal: 0.02
+      wrist_pitch:
+        trajectory: 0.2
+        goal: 0.02

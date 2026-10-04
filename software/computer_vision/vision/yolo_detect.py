@@ -1,3 +1,7 @@
+# Adapted from Edje Electronics:
+# https://github.com/EdjeElectronics/Train-and-Deploy-YOLO-Models
+# Original code licensed under the Apache License 2.0.
+
 import os
 import sys
 import argparse

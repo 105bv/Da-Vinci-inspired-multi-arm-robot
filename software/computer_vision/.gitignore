@@ -6,8 +6,20 @@
 __pycache__/
 *.pyc
 
+# Dataset files
+custom_data/images/
+custom_data/labels/
+custom_data/notes.json
+data/
+data.yaml
+*.zip
+
 # YOLO training output
 runs/
+
+# Pretrained / temporary model weights
+/yolo26n.pt
+models/*.pt
 
 # Videos / temporary test files
 *.avi

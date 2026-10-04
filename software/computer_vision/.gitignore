@@ -19,7 +19,8 @@ runs/
 
 # Pretrained / temporary model weights
 /yolo26n.pt
-models/*.pt
+# might need to remove for uploading the final computer vision
+models/*.pt 
 
 # Videos / temporary test files
 *.avi

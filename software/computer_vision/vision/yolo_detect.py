@@ -233,7 +233,7 @@ while True:
             )
 
             # Draw class + confidence label
-            label = f'{classname}: {int(conf*100)}%'
+            label = f'ID {track_id} | {classname}: {int(conf*100)}%'
 
             labelSize, baseLine = cv2.getTextSize(
                 label,

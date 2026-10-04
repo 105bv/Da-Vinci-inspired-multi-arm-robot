@@ -1,0 +1,18 @@
+# Python virtual environments
+.venv/
+.labelstudio-venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# YOLO training output
+runs/
+
+# Videos / temporary test files
+*.avi
+*.mp4
+
+# OS/editor
+.DS_Store
+.vscode/

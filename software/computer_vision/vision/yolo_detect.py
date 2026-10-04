@@ -193,9 +193,13 @@ while True:
 
         # Get bounding box coordinates
         # Ultralytics returns results in Tensor format, which have to be converted to a regular Python array
-        xyxy_tensor = detections[i].xyxy.cpu() # Detections in Tensor format in CPU memory
-        xyxy = xyxy_tensor.numpy().squeeze() # Convert tensors to Numpy array
-        xmin, ymin, xmax, ymax = xyxy.astype(int) # Extract individual coordinates and convert to int
+        xyxy_tensor = detections[i].xyxy.cpu()
+        xyxy = xyxy_tensor.numpy().squeeze()
+        xmin, ymin, xmax, ymax = xyxy.astype(int)
+
+        # Calculate center of bounding box
+        cx = (xmin + xmax) // 2
+        cy = (ymin + ymax) // 2
 
         # Get bounding box class ID and name
         classidx = int(detections[i].cls.item())
@@ -208,13 +212,77 @@ while True:
         if conf > min_thresh:
 
             color = bbox_colors[classidx % 10]
-            cv2.rectangle(frame, (xmin,ymin), (xmax,ymax), color, 2)
 
+            # Draw bounding box
+            cv2.rectangle(
+                frame,
+                (xmin, ymin),
+                (xmax, ymax),
+                color,
+                2
+            )
+
+            # Draw class + confidence label
             label = f'{classname}: {int(conf*100)}%'
-            labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1) # Get font size
-            label_ymin = max(ymin, labelSize[1] + 10) # Make sure not to draw label too close to top of window
-            cv2.rectangle(frame, (xmin, label_ymin-labelSize[1]-10), (xmin+labelSize[0], label_ymin+baseLine-10), color, cv2.FILLED) # Draw white box to put label text in
-            cv2.putText(frame, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1) # Draw label text
+
+            labelSize, baseLine = cv2.getTextSize(
+                label,
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                1
+            )
+
+            label_ymin = max(
+                ymin,
+                labelSize[1] + 10
+            )
+
+            cv2.rectangle(
+                frame,
+                (xmin, label_ymin-labelSize[1]-10),
+                (xmin+labelSize[0], label_ymin+baseLine-10),
+                color,
+                cv2.FILLED
+            )
+
+            cv2.putText(
+                frame,
+                label,
+                (xmin, label_ymin-7),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (0, 0, 0),
+                1
+            )
+
+            # Draw center point
+            cv2.circle(
+                frame,
+                (cx, cy),
+                5,
+                color,
+                -1
+            )
+
+            # Display center coordinates
+            position_text = f'center=({cx},{cy})'
+
+            cv2.putText(
+                frame,
+                position_text,
+                (xmin, ymax + 18),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                color,
+                1
+            )
+
+            # Print detection information
+            print(
+                f'class={classname}, '
+                f'confidence={conf:.2f}, '
+                f'center=({cx}, {cy})'
+            )
 
             # Basic example: count the number of objects in the image
             object_count = object_count + 1

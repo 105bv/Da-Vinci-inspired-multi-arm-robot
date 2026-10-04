@@ -180,7 +180,12 @@ while True:
         frame = cv2.resize(frame,(resW,resH))
 
     # Run inference on frame
-    results = model(frame, verbose=False)
+    results = model.track(
+        frame,
+        persist=True,
+        tracker="bytetrack.yaml",
+        verbose=False
+    )
 
     # Extract results
     detections = results[0].boxes
@@ -201,6 +206,11 @@ while True:
         cx = (xmin + xmax) // 2
         cy = (ymin + ymax) // 2
 
+        #Object tracking
+        track_id = None
+
+        if detections[i].id is not None:
+            track_id = int(detections[i].id.item())
         # Get bounding box class ID and name
         classidx = int(detections[i].cls.item())
         classname = labels[classidx]
@@ -279,6 +289,7 @@ while True:
 
             # Print detection information
             print(
+                f'id={track_id}, '
                 f'class={classname}, '
                 f'confidence={conf:.2f}, '
                 f'center=({cx}, {cy})'
